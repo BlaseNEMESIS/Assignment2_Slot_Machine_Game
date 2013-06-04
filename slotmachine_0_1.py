@@ -10,6 +10,8 @@
                 
 # import statements
 import random
+import pygame
+pygame.init()
 
 def Reels():
     """ When this function is called it determines the Bet_Line results.
@@ -122,6 +124,15 @@ def pullthehandle(Bet, Player_Money, Jack_Pot):
 
 def main():
     """ The Main function that runs the game loop """
+    #D - Display Config
+    screen = pygame.display.set_mode((640,480))
+    pygame.display.set_caption("U Got Died Slot Machine")
+
+    #E - Entities (just background for now)
+    background = pygame.Surface(screen.get_size())
+    background = background.convert()
+    background.fill((0, 0, 255))
+
     # Initial Values
     Player_Money = 1000
     Jack_Pot = 500
@@ -132,21 +143,30 @@ def main():
     loss_number = 0
     
     # Flag to initiate the game loop
+    clock = pygame.time.Clock()
     KeepGoing = True
     
     while KeepGoing == True:
+        #T - Timer to set frame rate
+        clock.tick(30)
         win = 0
         # Give the player some money if he goes broke
         if Player_Money <1:
             input("You have no more money. Here is $500 \nPress Enter\n")
             Player_Money = 500
-        
+        #Event Handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                KeepGoing = False
         # User Input
         Prompt = raw_input(" Place Your Bet ! \n Jackpot $ " + str(Jack_Pot) + "\n Money $ " + str(Player_Money) + "\n Q = quit \n")
         if Prompt  == "q" or Prompt  == "Q":
             KeepGoing = False
             break
-        
+        #R - Refresh display
+        screen.blit(background, (0, 0))
+        pygame.display.flip()
+
         if Prompt == "" and Turn >1:
             Bet = Prev_Bet
             print("Using Previous Bet")
