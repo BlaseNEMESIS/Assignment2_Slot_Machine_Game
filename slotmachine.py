@@ -12,11 +12,14 @@
 #Version: 0.3 - Added default spin image and slot machine background.
 #Version: 0.4 - Finished adding all the labels and buttons.  Still need to add functionality
 # and figure out how to create text boxes in Pygame.
+#Version: 0.5 - Removed Pygbutton and replaced it with buttons.py
+#Completed jackpot message and have slot machine spin working.  
+#Need to complete bet validation
                 
 # import statements
 import random
 import pygame
-import pygbutton
+import Buttons
 pygame.init()
 
 def Reels():
@@ -59,13 +62,13 @@ def is_number(Bet):
         print("Please enter a valid number or Q to quit")
         return False
 
-def pullthehandle(Bet, Player_Money, Jack_Pot):
+def pullthehandle(Player_Money, Bet, Jack_Pot, win, Fruit_Reel):
     """ This function takes the Player's Bet, Player's Money and Current JackPot as inputs.
         It then calls the Reels function which generates the random Bet Line results.
         It calculates if the player wins or loses the spin.
         It returns the Player's Money and the Current Jackpot to the main function """
     Player_Money -= Bet
-    Jack_Pot += (int(Bet*.15)) # 15% of the player's bet goes to the jackpot
+    Jack_Pot = Jack_Pot + (Bet*.15) # 15% of the player's bet goes to the jackpot
     win = False
     Fruit_Reel = Reels()
     Fruits = Fruit_Reel[0] + " - " + Fruit_Reel[1] + " - " + Fruit_Reel[2]
@@ -84,7 +87,6 @@ def pullthehandle(Bet, Player_Money, Jack_Pot):
     elif Fruit_Reel.count("bell.jpg") == 3:
         winnings,win = Bet*300,True
     elif Fruit_Reel.count("luckySeven.jpg") == 3:
-        print("Lucky Seven!!!")
         winnings,win = Bet*1000,True
     # Match 2
     elif Fruit_Reel.count("blank.jpg") == 0:
@@ -110,25 +112,32 @@ def pullthehandle(Bet, Player_Money, Jack_Pot):
         else:
             winnings, win = Bet*2,True
     if win:    
-        print(Fruits + "\n" + "You Won $ " + str(int(winnings)) + " !!! \n")
         Player_Money += int(winnings)
-    
         # Jackpot 1 in 450 chance of winning
         jackpot_try = random.randrange(1,51,1)
         jackpot_win = random.randrange(1,51,1)
+        
         if  jackpot_try  == jackpot_win:
-            print ("You Won The Jackpot !!!\nHere is your $ " + str(Jack_Pot) + "prize! \n")
+            Player_Money = Player_Money + Jack_Pot
             Jack_Pot = 500
-        elif jackpot_try != jackpot_win:
-            print ("You did not win the Jackpot this time. \nPlease try again ! \n")
+            
     # No win
     else:
         print(Fruits + "\nPlease try again. \n")
     
-    return Player_Money, Jack_Pot, win
+    return Player_Money, Bet, Jack_Pot, win, Fruit_Reel
 
 def main():
     """ The Main function that runs the game loop """
+    # Initial Values
+    Player_Money = 1000
+    Jack_Pot = 500
+    Turn = 1
+    Bet = 5
+    Prev_Bet=0
+    win_number = 0
+    loss_number = 0
+    Fruit_Reel = ["spin.jpg","spin.jpg","spin.jpg"]
     #D - Display Config
     screen = pygame.display.set_mode((640,480))
     pygame.display.set_caption("U Got Died Slot Machine")
@@ -138,63 +147,26 @@ def main():
     background = background.convert()
     background = pygame.image.load("slotMachineTemplate.jpg")
     #load the default image 
-    slot = pygame.Surface((200, 200))
-    slot = slot.convert()
-    slot = pygame.image.load("spin.jpg")
-    #load the blank image
-    blank = pygame.Surface((200, 200))
-    blank = blank.convert()
-    blank = pygame.image.load("blank.jpg")
-    #load the grapes image
-    grapes = pygame.Surface((200, 200))
-    grapes = grapes.convert()
-    grapes = pygame.image.load("grapes.jpg")
-    #load the banana image
-    banana = pygame.Surface((200, 200))
-    banana = banana.convert()
-    banana = pygame.image.load("banana.jpg")
-    #load the orange image
-    orange = pygame.Surface((200, 200))
-    orange = orange.convert()
-    orange = pygame.image.load("orange.jpg")
-    #load the cherry image
-    cherry = pygame.Surface((200, 200))
-    cherry = cherry.convert()
-    cherry = pygame.image.load("cherry.jpg")
-    #load the bar image
-    bar = pygame.Surface((200, 200))
-    bar = bar.convert()
-    bar = pygame.image.load("bar.jpg")
-    #load the bell image
-    bell = pygame.Surface((200, 200))
-    bell = bell.convert()
-    bell = pygame.image.load("bell.jpg")
-    #load the seven image
-    seven = pygame.Surface((200, 200))
-    seven = bar.convert()
-    seven = pygame.image.load("luckySeven.jpg")
+    slot1 = pygame.Surface((200, 200))
+    slot1 = slot1.convert()
+    slot1 = pygame.image.load("spin.jpg")
+    slot2 = slot1
+    slot3 = slot1
     #load the spin button
-    buttonSpin = pygbutton.PygButton((460, 375, 150, 95), 'Spin')
+    buttonSpin = Buttons.Button()
     #load the text and labels
     myFont = pygame.font.SysFont("Arial", 28)
-    creditText = myFont.render("1000", 1, (255, 255, 0))
+    creditText = myFont.render("" + str(Player_Money), 1, (255, 255, 0))
     lblCredit = myFont.render("Credit", 1, (255, 255, 0))
-    betText = myFont.render("5", 1, (255, 255, 0))
+    betText = myFont.render("" + str(Bet), 1, (255, 255, 0))
     lblBet = myFont.render("Bet", 1, (255, 255, 0))
-    jackpotText = myFont.render("500", 1, (255, 255, 0))
+    jackPotText = myFont.render("" + str(Jack_Pot), 1, (255, 255, 0))
     lblJackpot = myFont.render("Jackpot", 1, (255, 255, 0))
+    #load the JackPot!! message label
+    jackpotMessage = myFont.render("", 1, (255, 255, 0))
     #load the reset and quit button
-    buttonReset = pygbutton.PygButton((35, 375, 200, 95), 'Reset')
-    buttonQuit = pygbutton.PygButton((240, 375, 200, 95), 'Quit')
-    
-    # Initial Values
-    Player_Money = 1000
-    Jack_Pot = 500
-    Turn = 1
-    Bet = 5
-    Prev_Bet=0
-    win_number = 0
-    loss_number = 0
+    buttonReset = Buttons.Button()
+    buttonQuit = Buttons.Button()
     
     # Flag to initiate the game loop
     clock = pygame.time.Clock()
@@ -205,68 +177,86 @@ def main():
         clock.tick(30)
         win = 0
         
-        # Give the player some money if he goes broke
-        #if Player_Money <1:
-        #    input("You have no more money. Here is $500 \nPress Enter\n")
-        #    Player_Money = 500
         #Event Handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 KeepGoing = False
+            #if the mouse is pressed down
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                #if the mouse presses on reset
                 if buttonReset.pressed(pygame.mouse.get_pos()):
-                    
+                    #reset variables
+                    Player_Money = 1000
+                    Jack_Pot = 500
+                    Turn = 1
+                    Bet = 5
+                    Prev_Bet=0
+                    win_number = 0
+                    loss_number = 0
+                    Fruit_Reel = ["spin.jpg","spin.jpg","spin.jpg"]
+                # if the mouse presses quit
+                elif buttonQuit.pressed(pygame.mouse.get_pos()):
+                    #exit the loop and the program
+                    KeepGoing = False
+                elif buttonSpin.pressed(pygame.mouse.get_pos()):
+                    # User Input
+                    #if Prompt == "" and Turn >1:
+                        #Bet = Prev_Bet
+                        #print("Using Previous Bet")
+                    if Bet > Player_Money:
+                        print("Sorry, you only have $" + str(Player_Money) + " \n")
+                    elif Bet <= Player_Money:
+                        Turn +=1
+                        Prev_Bet = Bet
+                        Player_Money, Bet, Jack_Pot, win, Fruit_Reel = pullthehandle(Player_Money, Bet, Jack_Pot, win, Fruit_Reel)
+            
+                elif is_number(Prompt ):
+                    Bet = int(Prompt )
+                #not enough money
+                    if Bet > Player_Money:
+                        print("Sorry, you only have $" + str(Player_Money) + " \n")
+
+                # Spin the wheel
+                elif Bet <= Player_Money:
+                    Turn +=1
+                    Prev_Bet = Bet
+                    Player_Money, Bet, Jack_Pot, win, Fruit_Reel = pullthehandle(Player_Money, Bet, Jack_Pot, win, Fruit_Reel)
+        #if jack pot has happened display JackPot on the screen
+        if Jack_Pot == "500" and Turn > 0:
+            jackpotMessage = myFont.render("JackPot!!!", 1, (255, 255, 0))
+        #refresh the text boxes
+        creditText = myFont.render("" + str(Player_Money), 1, (255, 255, 0))
+        betText = myFont.render("" + str(Bet), 1, (255, 255, 0))
+        jackpotText = myFont.render("" + str(Jack_Pot), 1, (255, 255, 0))  
+        #change the slot images
+        slot1 = pygame.image.load(Fruit_Reel[0]) 
+        slot2 = pygame.image.load(Fruit_Reel[1])
+        slot3 = pygame.image.load(Fruit_Reel[2]) 
+         
         #R - Refresh display
         screen.blit(background, (0, 0))
         #display the slot default images
-        screen.blit(slot, (25, 30))
-        screen.blit(slot, (225, 30))
-        screen.blit(slot, (425, 30))
+        screen.blit(slot1, (25, 30))
+        screen.blit(slot2, (225, 30))
+        screen.blit(slot3, (425, 30))
         #display the spin button
-        buttonSpin.draw(screen)
+        buttonSpin.create_button(screen, (107,142,35), 460, 375, 150, 95, 0, "Spin", 
+                                 (255,255,255))
         #display text fields and labels
         screen.blit(creditText, (90, 290))
         screen.blit(lblCredit, (80, 340))
         screen.blit(betText, (305, 290))
         screen.blit(lblBet, (290, 340))
-        screen.blit(jackpotText,(480, 290))
+        screen.blit(jackpotText,(400, 290))
         screen.blit(lblJackpot, (440, 340))
+        screen.blit(jackpotMessage, (260, 230))
         #display the reset and quit button
-        buttonReset.draw(screen)
-        buttonQuit.draw(screen)
-        pygame.display.flip()
-        
-        #if Prompt == "" and Turn >1:
-        #    Bet = Prev_Bet
-        #    print("Using Previous Bet")
-        #    if Bet > Player_Money:
-        #        print("Sorry, you only have $" + str(Player_Money) + " \n")
-        #    elif Bet <= Player_Money:
-        #        Turn +=1
-        #        Prev_Bet = Bet
-        #        Player_Money, Jack_Pot, win = pullthehandle(Bet, Player_Money, Jack_Pot)
-        
-        #elif is_number(Prompt ):
-        #   Bet = int(Prompt )
-            # not enough money
-        #    if Bet > Player_Money:
-        #        print("Sorry, you only have $" + str(Player_Money) + " \n")
-                
-        #    # Let's Play
-        #    elif Bet <= Player_Money:
-        #        Turn +=1
-        #        Prev_Bet = Bet
-        #        Player_Money, Jack_Pot, win = pullthehandle(Bet, Player_Money, Jack_Pot)
-        #
-        # determine win/loss ratio for debugging purposes
-        #if win:
-        #    win_number += 1
-        #else:
-        #    loss_number += 1
-        #win_ratio = "{:.2%}".format(win_number / Turn)
-        #print("Wins: " + str(win_number) + "\nLosses: " + str(loss_number) + "\nWin Ratio: " + win_ratio + "\n")           
-        #       
-        #    
+        buttonReset.create_button(screen, (107,142,35), 10, 375, 200, 95, 0, "Reset", 
+                                 (255,255,255))
+        buttonQuit.create_button(screen, (107,142,35), 240, 375, 200, 95, 0, "Quit", 
+                                 (255,255,255))
+        pygame.display.flip()       
+
     #The End
     print("- Program Terminated -")
     
