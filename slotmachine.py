@@ -3,16 +3,20 @@
 # Last Modified By: Jonathan Hodder
 # Date Last Modified: Monday June 3rd, 2013
 #Program Description:  This program simulates a Casino-Style Slot Machine. It provides an GUI
-#for the user that is an image of a slot machine with Label and Button objects
+#for the user that is an image of a slot machine with Label and Button objects  
+#Allows the user to bet and then spin the slot machine.  You can either win something 
 
 #Version: 0.1 - Original code provided from Teacher. 
 #(Contains the framework for the slot machine)
 #Version: 0.2 - Added pygame import and other pygame code from lesson 4.
 #Version: 0.3 - Added default spin image and slot machine background.
+#Version: 0.4 - Finished adding all the labels and buttons.  Still need to add functionality
+# and figure out how to create text boxes in Pygame.
                 
 # import statements
 import random
 import pygame
+import pygbutton
 pygame.init()
 
 def Reels():
@@ -42,7 +46,7 @@ def Reels():
         if Outcome[spin] >= 62 and Outcome[spin] <=63:  # 3.65%  Chance
             Bet_Line[spin] = "bell.jpg"  
         if Outcome[spin] == 64:                         # 1.56%  Chance
-            Bet_Line[spin] = "seven.jpg"    
+            Bet_Line[spin] = "luckySeven.jpg"    
            
     return Bet_Line
 
@@ -79,7 +83,7 @@ def pullthehandle(Bet, Player_Money, Jack_Pot):
         winnings,win = Bet*200,True
     elif Fruit_Reel.count("bell.jpg") == 3:
         winnings,win = Bet*300,True
-    elif Fruit_Reel.count("seven.jpg") == 3:
+    elif Fruit_Reel.count("luckySeven.jpg") == 3:
         print("Lucky Seven!!!")
         winnings,win = Bet*1000,True
     # Match 2
@@ -96,11 +100,11 @@ def pullthehandle(Bet, Player_Money, Jack_Pot):
             winnings,win = Bet*5,True
         elif Fruit_Reel.count("bell.jpg") == 2:
             winnings,win = Bet*10,True
-        elif Fruit_Reel.count("seven.jpg") == 2:
+        elif Fruit_Reel.count("luckySeven.jpg") == 2:
             winnings,win = Bet*20,True
     
         # Match Lucky Seven
-        elif Fruit_Reel.count("seven.jpg") == 1:
+        elif Fruit_Reel.count("luckySeven.jpg") == 1:
             winnings, win = Bet*10,True
             
         else:
@@ -168,13 +172,26 @@ def main():
     #load the seven image
     seven = pygame.Surface((200, 200))
     seven = bar.convert()
-    seven = pygame.image.load("seven.jpg")
+    seven = pygame.image.load("luckySeven.jpg")
+    #load the spin button
+    buttonSpin = pygbutton.PygButton((460, 375, 150, 95), 'Spin')
+    #load the text and labels
+    myFont = pygame.font.SysFont("Arial", 28)
+    creditText = myFont.render("1000", 1, (255, 255, 0))
+    lblCredit = myFont.render("Credit", 1, (255, 255, 0))
+    betText = myFont.render("5", 1, (255, 255, 0))
+    lblBet = myFont.render("Bet", 1, (255, 255, 0))
+    jackpotText = myFont.render("500", 1, (255, 255, 0))
+    lblJackpot = myFont.render("Jackpot", 1, (255, 255, 0))
+    #load the reset and quit button
+    buttonReset = pygbutton.PygButton((35, 375, 200, 95), 'Reset')
+    buttonQuit = pygbutton.PygButton((240, 375, 200, 95), 'Quit')
     
     # Initial Values
     Player_Money = 1000
     Jack_Pot = 500
     Turn = 1
-    Bet = 0
+    Bet = 5
     Prev_Bet=0
     win_number = 0
     loss_number = 0
@@ -187,6 +204,7 @@ def main():
         #T - Timer to set frame rate
         clock.tick(30)
         win = 0
+        
         # Give the player some money if he goes broke
         #if Player_Money <1:
         #    input("You have no more money. Here is $500 \nPress Enter\n")
@@ -195,11 +213,27 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 KeepGoing = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if buttonReset.pressed(pygame.mouse.get_pos()):
+                    
         #R - Refresh display
         screen.blit(background, (0, 0))
+        #display the slot default images
         screen.blit(slot, (25, 30))
         screen.blit(slot, (225, 30))
         screen.blit(slot, (425, 30))
+        #display the spin button
+        buttonSpin.draw(screen)
+        #display text fields and labels
+        screen.blit(creditText, (90, 290))
+        screen.blit(lblCredit, (80, 340))
+        screen.blit(betText, (305, 290))
+        screen.blit(lblBet, (290, 340))
+        screen.blit(jackpotText,(480, 290))
+        screen.blit(lblJackpot, (440, 340))
+        #display the reset and quit button
+        buttonReset.draw(screen)
+        buttonQuit.draw(screen)
         pygame.display.flip()
         
         #if Prompt == "" and Turn >1:
