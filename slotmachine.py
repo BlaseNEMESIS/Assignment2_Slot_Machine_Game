@@ -2,9 +2,11 @@
 # Author's Name: Jonathan Hodder
 # Last Modified By: Jonathan Hodder
 # Date Last Modified: Monday June 3rd, 2013
-#Program Description:  This program simulates a Casino-Style Slot Machine. It provides an GUI
-#for the user that is an image of a slot machine with Label and Button objects  
-#Allows the user to bet and then spin the slot machine.  You can either win something 
+#Program Description:  This program simulates a Slot Machine Game. It provides an GUI
+#for the user.  The GUI contains 5 bet buttons where you can bet different values, a reset
+#button that will reset the game, a spin button that lets you spin the wheel, also a quit 
+#button to let you quit the game  
+
 
 #Version: 0.1 - Original code provided from Teacher. 
 #(Contains the framework for the slot machine)
@@ -15,6 +17,11 @@
 #Version: 0.5 - Removed Pygbutton and replaced it with buttons.py
 #Completed jackpot message and have slot machine spin working.  
 #Need to complete bet validation
+#Version: 1.0 - Completed bet validation and completed coloring of buttons for different states 
+
+#Used import Buttons.py
+#Author: Simon H. Larsen
+#Link: http://lagusan.com/button-drawer-python-2-6/
                 
 # import statements
 import random
@@ -121,10 +128,6 @@ def pullthehandle(Player_Money, Bet, Jack_Pot, win, Fruit_Reel):
             Player_Money = Player_Money + Jack_Pot
             Jack_Pot = 500
             
-    # No win
-    else:
-        print(Fruits + "\nPlease try again. \n")
-    
     return Player_Money, Bet, Jack_Pot, win, Fruit_Reel
 
 def main():
@@ -138,6 +141,18 @@ def main():
     win_number = 0
     loss_number = 0
     Fruit_Reel = ["spin.jpg","spin.jpg","spin.jpg"]
+    #button color variables
+    defaultBetButton = (255,0,0)
+    disabledButton = (95,100,65)
+    selectedBetButton = (0,255,0)
+    defaultSpinButton = (107,142,35)
+    #color variables
+    bet5Color = selectedBetButton
+    bet25Color = defaultBetButton
+    bet50Color = defaultBetButton
+    bet100Color = defaultBetButton
+    bet250Color = defaultBetButton
+    spinColor = defaultSpinButton
     #D - Display Config
     screen = pygame.display.set_mode((640,480))
     pygame.display.set_caption("U Got Died Slot Machine")
@@ -163,10 +178,16 @@ def main():
     jackPotText = myFont.render("" + str(Jack_Pot), 1, (255, 255, 0))
     lblJackpot = myFont.render("Jackpot", 1, (255, 255, 0))
     #load the JackPot!! message label
-    jackpotMessage = myFont.render("", 1, (255, 255, 0))
+    messageText = myFont.render("", 1, (255, 255, 0))
     #load the reset and quit button
     buttonReset = Buttons.Button()
     buttonQuit = Buttons.Button()
+    #load the bet buttons
+    buttonBet5 = Buttons.Button()
+    buttonBet25 = Buttons.Button()
+    buttonBet50 = Buttons.Button()
+    buttonBet100 = Buttons.Button()
+    buttonBet250 = Buttons.Button()
     
     # Flag to initiate the game loop
     clock = pygame.time.Clock()
@@ -176,15 +197,101 @@ def main():
         #T - Timer to set frame rate
         clock.tick(30)
         win = 0
-        
+            
+        #if statements to turn back on disabled buttons if you win enough money
+        #to continue to use them again
+        if Player_Money >= 25 and bet25Color == disabledButton:
+            bet25Color = defaultBetButton
+        if Player_Money >=50 and bet50Color == disabledButton:
+            bet50Color = defaultBetButton
+        if Player_Money >= 100 and bet100Color == disabledButton:
+            bet100Color = defaultBetButton 
+        if Player_Money >= 250 and bet250Color == disabledButton:
+            bet250Color = defaultBetButton             
         #Event Handling
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 KeepGoing = False
             #if the mouse is pressed down
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                #if bet 5 is selected set bet to 5
+                if buttonBet5.pressed(pygame.mouse.get_pos()):
+                    messageText = myFont.render("", 1, (255, 255, 0))
+                    #if you have enough money to bet with set the bet to 5
+                    #change bet colors
+                    if Player_Money >= 250:
+                        bet250Color = defaultBetButton
+                    if Player_Money >= 100:
+                        bet100Color = defaultBetButton
+                    if Player_Money >= 50:
+                        bet50Color = defaultBetButton
+                    if Player_Money >= 25:  
+                        bet25Color = defaultBetButton 
+                    if Player_Money >= 5: 
+                        Bet = 5
+                        bet5Color = selectedBetButton
+
+                #if bet 25 is selected set bet to 25
+                elif buttonBet25.pressed(pygame.mouse.get_pos()):
+                    messageText = myFont.render("", 1, (255, 255, 0))
+                    #if you have enough money to bet with set the bet to 25
+                    #change bet colors
+                    if Player_Money >= 250:
+                        bet250Color = defaultBetButton
+                    if Player_Money >= 100:
+                        bet100Color = defaultBetButton
+                    if Player_Money >= 50:
+                        bet50Color = defaultBetButton
+                    if Player_Money >= 25:    
+                        Bet = 25
+                        bet5Color = defaultBetButton
+                        bet25Color = selectedBetButton
+                    #send a message saying they do not have enough
+                    else:
+                        messageText = myFont.render("Do not have $25 to bet with", 1, (255, 255, 0))
+                #if bet 50 is selected set bet to 50
+                elif buttonBet50.pressed(pygame.mouse.get_pos()):
+                    messageText = myFont.render("", 1, (255, 255, 0))
+                    if Player_Money >= 250:
+                        bet250Color = defaultBetButton
+                    if Player_Money >= 100:
+                        bet100Color = defaultBetButton
+                    if Player_Money >= 50:    
+                        Bet = 50
+                        bet5Color = defaultBetButton
+                        bet25Color = defaultBetButton
+                        bet50Color = selectedBetButton
+                    else:
+                        messageText = myFont.render("Do not have $50 to bet with", 1, (255, 255, 0))
+                #if bet 100 is selected set bet to 100
+                elif buttonBet100.pressed(pygame.mouse.get_pos()):
+                    messageText = myFont.render("", 1, (255, 255, 0))
+                    #change bet colors
+                    if Player_Money >= 250:
+                        bet250Color = defaultBetButton
+                    if Player_Money >= 100:    
+                        Bet = 100
+                        bet5Color = defaultBetButton
+                        bet25Color = defaultBetButton
+                        bet50Color = defaultBetButton
+                        bet100Color = selectedBetButton    
+                    else:
+                        messageText = myFont.render("Do not have $100 to bet with", 1, (255, 255, 0))
+                #if bet 250 is selected set bet to 250
+                elif buttonBet250.pressed(pygame.mouse.get_pos()):
+                    messageText = myFont.render("", 1, (255, 255, 0))
+                    if Player_Money >= 250:    
+                        Bet = 250
+                        #change bet colors
+                        bet5Color = defaultBetButton
+                        bet25Color = defaultBetButton
+                        bet50Color = defaultBetButton
+                        bet100Color = defaultBetButton
+                        bet250Color = selectedBetButton
+                    else:
+                        messageText = myFont.render("Do not have $250 to bet with", 1, (255, 255, 0))
                 #if the mouse presses on reset
-                if buttonReset.pressed(pygame.mouse.get_pos()):
+                elif buttonReset.pressed(pygame.mouse.get_pos()):
                     #reset variables
                     Player_Money = 1000
                     Jack_Pot = 500
@@ -193,37 +300,55 @@ def main():
                     Prev_Bet=0
                     win_number = 0
                     loss_number = 0
+                    #reset slot images
                     Fruit_Reel = ["spin.jpg","spin.jpg","spin.jpg"]
+                    #reset button colors
+                    bet5Color = selectedBetButton
+                    bet25Color = defaultBetButton
+                    bet50Color = defaultBetButton
+                    bet100Color = defaultBetButton
+                    bet250Color = defaultBetButton
+                    spinColor = defaultSpinButton
+                    #Reset the message text
+                    messageText = myFont.render("", 1, (255, 255, 0))
                 # if the mouse presses quit
                 elif buttonQuit.pressed(pygame.mouse.get_pos()):
                     #exit the loop and the program
                     KeepGoing = False
                 elif buttonSpin.pressed(pygame.mouse.get_pos()):
-                    # User Input
-                    #if Prompt == "" and Turn >1:
-                        #Bet = Prev_Bet
-                        #print("Using Previous Bet")
-                    if Bet > Player_Money:
-                        print("Sorry, you only have $" + str(Player_Money) + " \n")
-                    elif Bet <= Player_Money:
+                    messageText = myFont.render("", 1, (255, 255, 0))
+                    if Player_Money >= Bet:
                         Turn +=1
                         Prev_Bet = Bet
                         Player_Money, Bet, Jack_Pot, win, Fruit_Reel = pullthehandle(Player_Money, Bet, Jack_Pot, win, Fruit_Reel)
-            
-                elif is_number(Prompt ):
-                    Bet = int(Prompt )
-                #not enough money
-                    if Bet > Player_Money:
-                        print("Sorry, you only have $" + str(Player_Money) + " \n")
-
-                # Spin the wheel
-                elif Bet <= Player_Money:
-                    Turn +=1
-                    Prev_Bet = Bet
-                    Player_Money, Bet, Jack_Pot, win, Fruit_Reel = pullthehandle(Player_Money, Bet, Jack_Pot, win, Fruit_Reel)
+                        #check if there is less than 250 left to bet
+                    if Player_Money < 250:
+                        bet250Color = disabledButton
+                        bet = 100
+                    #check if there is less than 100 left to bet
+                    if Player_Money < 100:
+                        bet100Color = disabledButton
+                        bet = 50
+                    #check if there is less than 50 left to bet
+                    if Player_Money < 50:
+                        bet50Color = disabledButton
+                        bet = 25
+                    #check if there is less than 25 left to bet
+                    if Player_Money < 25:
+                        bet25Color = disabledButton
+                        bet = 5
+                    #check if there is less than 5 left to bet
+                    if Player_Money < 5:
+                        bet5Color = disabledButton
+                        spinColor = disabledButton
+                        bet = 0
+                        
+        if Player_Money < 5: 
+            messageText = myFont.render("You are out of money to bet with", 1, (255, 255, 0))
         #if jack pot has happened display JackPot on the screen
-        if Jack_Pot == "500" and Turn > 0:
-            jackpotMessage = myFont.render("JackPot!!!", 1, (255, 255, 0))
+        elif Jack_Pot == "500" and Turn > 0:
+            messageText = myFont.render("JackPot!!!", 1, (255, 255, 0))
+
         #refresh the text boxes
         creditText = myFont.render("" + str(Player_Money), 1, (255, 255, 0))
         betText = myFont.render("" + str(Bet), 1, (255, 255, 0))
@@ -240,7 +365,7 @@ def main():
         screen.blit(slot2, (225, 30))
         screen.blit(slot3, (425, 30))
         #display the spin button
-        buttonSpin.create_button(screen, (107,142,35), 460, 375, 150, 95, 0, "Spin", 
+        buttonSpin.create_button(screen, (spinColor), 490, 375, 150, 95, 0, "Spin", 
                                  (255,255,255))
         #display text fields and labels
         screen.blit(creditText, (90, 290))
@@ -249,11 +374,22 @@ def main():
         screen.blit(lblBet, (290, 340))
         screen.blit(jackpotText,(400, 290))
         screen.blit(lblJackpot, (440, 340))
-        screen.blit(jackpotMessage, (260, 230))
+        screen.blit(messageText, (260, 230))
         #display the reset and quit button
-        buttonReset.create_button(screen, (107,142,35), 10, 375, 200, 95, 0, "Reset", 
+        buttonReset.create_button(screen, (107,142,35), 10, 375, 150, 95, 0, "Reset", 
                                  (255,255,255))
-        buttonQuit.create_button(screen, (107,142,35), 240, 375, 200, 95, 0, "Quit", 
+        buttonQuit.create_button(screen, (107,142,35), 170, 375, 150, 95, 0, "Quit", 
+                                 (255,255,255))
+        #display the bet buttons
+        buttonBet5.create_button(screen, (bet5Color), 330, 375, 50, 50, 0, "5  ", 
+                                 (255,255,255))
+        buttonBet25.create_button(screen, (bet25Color), 380, 375, 50, 50, 0, "25 ", 
+                                 (255,255,255))
+        buttonBet50.create_button(screen, (bet50Color), 330, 430, 50, 50, 0, "50 ", 
+                                 (255,255,255))
+        buttonBet100.create_button(screen, (bet100Color), 380, 430, 50, 50, 0, "100", 
+                                 (255,255,255))
+        buttonBet250.create_button(screen, (bet250Color), 435, 400, 50, 50, 0, "250", 
                                  (255,255,255))
         pygame.display.flip()       
 
